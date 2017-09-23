@@ -253,3 +253,5 @@ const countryData = csvParse(
 "001","World","009","Oceania","061","Polynesia","","","Wallis and Futuna Islands","876","WLF","","","","Developing"`)
 
 export default countryData
+
+module.exports = countryData

@@ -6,8 +6,8 @@ const socket = io(window.location.origin);
 
 socket.on('connect', () => {
 
-    socket.on('new-tweet', (tweetLocation) => {
-        store.dispatch(addTweetLocation(tweetLocation))
+    socket.on('new-tweet', (tweetData) => {
+        store.dispatch(addTweetLocation(tweetData))
     });
 
 

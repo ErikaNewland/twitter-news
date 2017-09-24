@@ -11,7 +11,7 @@ export const removeTweetLocation = tweetLocation => {
     return {type: ADD_TWEET, tweetLocation}
 }
 
-export default function(state = [], action) {
+export default function(state = {}, action) {
     switch (action.type) {
         case ADD_TWEET: return [...state, action.tweetLocation]
         case REMOVE_TWEET: {

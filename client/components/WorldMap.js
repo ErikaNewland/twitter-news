@@ -7,25 +7,20 @@ import { connect } from 'react-redux'
 import countryCodes from '../../data/countryCode'
 import { transition } from 'd3-transition'
 import { geoMercator, geoPath } from 'd3-geo'
-import {removeTweetLocation} from '../store'
-import {Map} from 'react-leaflet'
+import {Map, TileLayer} from 'react-leaflet'
 
-class WorldMap extends Component {
+export default class WorldMap extends Component {
   constructor(props) {
     super(props)
     this.renderMap = this.renderMap.bind(this)
   }
 
-
-
-
-
-  renderMap(geoData) {
+  renderMap(geoData, tweetData) {
     const node = this.node
     const width = node.width.animVal.value
     const height = node.height.animVal.value
 
-    const projection=() =>{
+    const projection = () => {
       return geoMercator()
         .scale(100)
         .translate([width / 2, height / 1.5])
@@ -35,11 +30,9 @@ class WorldMap extends Component {
       .append('g')
       .classed('countries', true)
 
-
     const countries = select('g')
       .selectAll('path')
       .data(geoData)
-
 
     countries.enter()
       .append('path')
@@ -49,31 +42,38 @@ class WorldMap extends Component {
       .attr("fill", "grey")
       .each(function (d, i) {
         select(this)
-          .attr("d", geoPath().projection(projection(width, height))(d))  //!!!!refactor to remove projection function from here
+          .attr("d", geoPath().projection(projection())(d))  
       })
+      .merge(countries)
+   
+      if (tweetData.location) {
+      const location = tweetData.location
+      const cities = select('g')
+        .selectAll('circle')
+        .data([[Number(location.long), Number(location.lat)]])
 
-
-
+      cities.enter()
+        .append("circle")
+        .classed('city', true)
+        .attr("cx", function (d) { 
+          return projection()(d)[0] 
+        })
+        .attr("cy", function (d) { return projection()(d)[1] })
+        .attr("r", "4px")
+        .attr("fill", "red")
+        .transition()
+          .delay(500)
+          .remove()
+ 
+    }
   }
 
-
-  appendLocation(location) {
-    //append a circle in the capital for each country
-
-    //later append a circle in each location for other location types
-  }
 
   componentWillReceiveProps(nextProps) {
-    console.log("running")
     if (nextProps.geoData.length) {
-      this.renderMap(nextProps.geoData)
-    }
-    if (nextProps.location) {
-      nextProps.removeTweetLocation(nextProps.location)          
-      this.appendLocation(nextProps.location)
+      this.renderMap(nextProps.geoData, nextProps.tweetData)
     }
   }
-
 
   shouldComponentUpdate() {
     return false;
@@ -81,23 +81,18 @@ class WorldMap extends Component {
 
   render() {
     return (
-      <svg
+      <Map height = {this.props.height} center={[40.7128, 74.0059]} zoom={13}>
+        <TileLayer
+          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        />
+      {/*<svg
         width={this.props.width} height={this.props.height}
-        ref={node => this.node = node}
-        onClick={() => this.props.onClick(undefined, this.node)}>
-      </svg>
+      ref={node => this.node = node}>
+      </svg>/*}
+    </Map>   
     );
   }
 }
 
 
-const mapDispatchToProps = dispatch => {
-  return {
-    removeTweetLocation: function(tweet){
-      dispatch(removeTweetLocation(tweet))
-    }
-  }
-}
-
-
-export default connect(null, mapDispatchToProps)(WorldMap)

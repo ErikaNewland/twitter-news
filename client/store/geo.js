@@ -8,10 +8,8 @@ const getGeoData = (geoData) =>{
 
 export const gettingGeoData = () =>{
   return function thunk(dispatch) {
-    console.log('requesting')
     axios.get("https://unpkg.com/world-atlas@1/world/110m.json")
     .then(res =>  {
-      console.log('got it!')
       return res.data
     })
     .then((data)=>{
@@ -19,7 +17,6 @@ export const gettingGeoData = () =>{
     })
   }
 }
-
 
 export default function (state={}, action) {
   switch(action.type) {

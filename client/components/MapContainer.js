@@ -12,16 +12,12 @@ class MapContainer extends Component {
     super(props)
       this.state = {
         geoData:[],
+        tweetCounter: -1
     }
-    // this.handleTweet = this.handleTweet.bind(this)
     this.setGeoData = this.setGeoData.bind(this)
   }
 
-  
-  //uses topojson-client library method 'feature' to transform topo-json map data into geo-json map data
-  //function is in container becaues it will not be required for map data already in geo-json format
   transformGeoData(geoData) {
-    console.log('transforming')
     return feature(geoData, geoData.objects.countries).features
   }
 
@@ -33,21 +29,24 @@ class MapContainer extends Component {
   }
 
 
-  //runs the function when the store has updated with the data from various data sources
   componentWillReceiveProps(nextProps) {
-    console.log('nextProps', nextProps)
     if(nextProps.geoData.arcs) {
       this.setGeoData(nextProps.geoData)
     }
+    if(nextProps.tweets[0]){
+      let tweetCount = this.state.tweetCounter
+      tweetCount++
+      this.setState({tweetCounter: tweetCount})
+    }
   }
 
-
   render() {
+    const tweetCounter = this.state.tweetCounter
     return (
       <div>
         <WorldMap
           geoData={this.state.geoData}
-          location = {this.state.tweetLocations? this.state.tweetLocations[0] : ""}
+          tweetData ={this.props.tweets[tweetCounter]?this.props.tweets[tweetCounter]:{}}
           width={1000}
           height={500}
         />
@@ -56,21 +55,11 @@ class MapContainer extends Component {
   }
 }
 
-
 const mapStateToProps = state => {
   return {
     geoData: state.geoData,
-    tweetLocations: state.tweetLocations
+    tweets: state.tweets
   }
 }
 
-const mapDispatchToProps = dispatch => {
-  return {
-    removeTweetLocation: function(tweet){
-      dispatch(removeTweetLocation(tweet))
-    }
-  }
-}
-
-
-export default connect(mapStateToProps, mapDispatchToProps)(MapContainer)
+export default connect(mapStateToProps)(MapContainer)

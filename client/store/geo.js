@@ -18,7 +18,6 @@ export const gettingGeoData = () =>{
   }
 }
 
-
 export default function (state={}, action) {
   switch(action.type) {
     case GET_GEO_DATA : {

@@ -17,9 +17,6 @@ class MapContainer extends Component {
     this.setGeoData = this.setGeoData.bind(this)
   }
 
-  
-  //uses topojson-client library method 'feature' to transform topo-json map data into geo-json map data
-  //function is in container becaues it will not be required for map data already in geo-json format
   transformGeoData(geoData) {
     return feature(geoData, geoData.objects.countries).features
   }
@@ -32,7 +29,6 @@ class MapContainer extends Component {
   }
 
 
-  //runs the function when the store has updated with the data from various data sources
   componentWillReceiveProps(nextProps) {
     if(nextProps.geoData.arcs) {
       this.setGeoData(nextProps.geoData)
@@ -43,7 +39,6 @@ class MapContainer extends Component {
       this.setState({tweetCounter: tweetCount})
     }
   }
-
 
   render() {
     const tweetCounter = this.state.tweetCounter
@@ -60,14 +55,11 @@ class MapContainer extends Component {
   }
 }
 
-
 const mapStateToProps = state => {
   return {
     geoData: state.geoData,
     tweets: state.tweets
   }
 }
-
-
 
 export default connect(mapStateToProps)(MapContainer)

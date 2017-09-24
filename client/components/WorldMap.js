@@ -46,11 +46,9 @@ export default class WorldMap extends Component {
           .attr("d", geoPath().projection(projection())(d))  
       })
       .merge(countries)
-
-      
+   
       if (tweetData.location) {
       const location = tweetData.location
-      console.log('location', location)
       const cities = select('g')
         .selectAll('circle')
         .data([[Number(location.long), Number(location.lat)]])
@@ -67,9 +65,7 @@ export default class WorldMap extends Component {
         .transition()
           .delay(500)
           .remove()
-
-
-        
+ 
     }
   }
 
@@ -79,7 +75,6 @@ export default class WorldMap extends Component {
       this.renderMap(nextProps.geoData, nextProps.tweetData)
     }
   }
-
 
   shouldComponentUpdate() {
     return false;

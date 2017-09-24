@@ -22509,8 +22509,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(33);
@@ -22559,7 +22557,7 @@ var WorldMap = function (_Component) {
 
   _createClass(WorldMap, [{
     key: 'renderMap',
-    value: function renderMap(geoData) {
+    value: function renderMap(geoData, tweetData) {
       var node = this.node;
       var width = node.width.animVal.value;
       var height = node.height.animVal.value;
@@ -22573,59 +22571,25 @@ var WorldMap = function (_Component) {
       var countries = (0, _d3Selection.select)('g').selectAll('path').data(geoData);
 
       countries.enter().append('path').classed('country', true).attr("stroke", "black").attr("strokeWidth", 0.75).attr("fill", "grey").each(function (d, i) {
-        (0, _d3Selection.select)(this).attr("d", (0, _d3Geo.geoPath)().projection(projection(width, height))(d)); //!!!!refactor to remove projection function from here
+        (0, _d3Selection.select)(this).attr("d", (0, _d3Geo.geoPath)().projection(projection())(d)); //!!!!refactor to remove projection function from here
       }).merge(countries);
-    }
-  }, {
-    key: 'appendLocation',
-    value: function appendLocation(lat, long) {
-      console.log('location', lat, long, typeof lat === 'undefined' ? 'undefined' : _typeof(lat));
-      //append a circle in the capital for each country
-      var node = this.node;
-      var width = node.width.animVal.value;
-      var height = node.height.animVal.value;
 
-      var projection = function projection() {
-        return (0, _d3Geo.geoMercator)().scale(100).translate([width / 2, height / 1.5]);
-      };
+      if (tweetData.country) {
+        var country = tweetData.country;
+        var cities = (0, _d3Selection.select)('g').selectAll('circle').data([[country.CapitalLongitude, country.CapitalLatitude]]);
 
-      var cities = (0, _d3Selection.select)('g').selectAll('circle').data([long, lat]);
-
-      cities.enter().append("circle").classed('city', true)
-      // .attr("cx", function (d) {  return projection(d)[0]; })
-      // .attr("cy", function (d) { return projection(d)[1]; })
-      .attr("cx", function (d) {
-        return projection(width, height)(d)[0];
-      }).attr("cy", function (d) {
-        return projection(width, height)(d)[1];
-      }).attr("r", "8px").attr("fill", "red");
-      //   .transition()
-      //     .duration(1000)
-      // .remove()
-      //   .transition()
-      //   .delay(2000)
-      //   .duration(1000)
-      // .merge(cities)
-      //   .append("circle")
-      //   .attr("cx", function (d) {  return projection(d)[0]; })
-      //   .attr("cy", function (d) { return projection(d)[1]; })
-      //   .attr("r", "8px")
-      //   .attr("fill", "red")
-      //   .duration(1000)
-
-      // cities.exit()
-      //   .remove()
+        cities.enter().append("circle").classed('city', true).attr("cx", function (d) {
+          return projection()(d)[0];
+        }).attr("cy", function (d) {
+          return projection()(d)[1];
+        }).attr("r", "8px").attr("fill", "red").transition().delay(1000).remove();
+      }
     }
   }, {
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(nextProps) {
       if (nextProps.geoData.length) {
-        this.renderMap(nextProps.geoData);
-      }
-      var tweet = nextProps.tweetData;
-      var country = tweet.country;
-      if (tweet.country) {
-        this.appendLocation(country.CapitalLatitude, country.CapitalLongitude);
+        this.renderMap(nextProps.geoData, nextProps.tweetData);
       }
     }
   }, {

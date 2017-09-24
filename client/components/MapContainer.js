@@ -37,7 +37,7 @@ class MapContainer extends Component {
     if(nextProps.geoData.arcs) {
       this.setGeoData(nextProps.geoData)
     }
-    if(nextProps.tweetLocations[0]){
+    if(nextProps.tweets[0]){
       let tweetCount = this.state.tweetCounter
       tweetCount++
       this.setState({tweetCounter: tweetCount})
@@ -51,7 +51,7 @@ class MapContainer extends Component {
       <div>
         <WorldMap
           geoData={this.state.geoData}
-          tweetData ={this.props.tweetLocations[tweetCounter]?this.props.tweetLocations[tweetCounter]:{}}
+          tweetData ={this.props.tweets[tweetCounter]?this.props.tweets[tweetCounter]:{}}
           width={1000}
           height={500}
         />
@@ -64,7 +64,7 @@ class MapContainer extends Component {
 const mapStateToProps = state => {
   return {
     geoData: state.geoData,
-    tweetLocations: state.tweetLocations
+    tweets: state.tweets
   }
 }
 

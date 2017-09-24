@@ -43,16 +43,17 @@ export default class WorldMap extends Component {
       .attr("fill", "grey")
       .each(function (d, i) {
         select(this)
-          .attr("d", geoPath().projection(projection())(d))  //!!!!refactor to remove projection function from here
+          .attr("d", geoPath().projection(projection())(d))  
       })
       .merge(countries)
 
       
-      if (tweetData.country) {
-      const country = tweetData.country
+      if (tweetData.location) {
+      const location = tweetData.location
+      console.log('location', location)
       const cities = select('g')
         .selectAll('circle')
-        .data([[country.CapitalLongitude, country.CapitalLatitude]])
+        .data([[Number(location.long), Number(location.lat)]])
 
       cities.enter()
         .append("circle")

@@ -1,7 +1,6 @@
 const router = require('express').Router()
 
-
-router.use('/envMort', require('./envMort'))
+router.use('/twitter', require('./twitter').router)
 
 router.use((req, res, next) => {
   const error = new Error('Not Found')

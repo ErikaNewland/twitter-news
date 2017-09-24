@@ -8,7 +8,7 @@ import countryCodes from '../../data/countryCode'
 import { transition } from 'd3-transition'
 import { geoMercator, geoPath } from 'd3-geo'
 import {removeTweetLocation} from '../store'
-
+import {Map} from 'react-leaflet'
 
 class WorldMap extends Component {
   constructor(props) {

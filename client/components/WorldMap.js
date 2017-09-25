@@ -5,10 +5,11 @@ import { interpolateHclLong } from 'd3-interpolate'
 import { max, min } from 'd3-array'
 import { connect } from 'react-redux'
 import countryCodes from '../../data/countryCode'
+import * as d3 from 'd3'
 import { transition } from 'd3-transition'
-import { geoMercator, geoPath } from 'd3-geo'
-import { removeTweetLocation } from '../store'
-
+import { geoMercator, geoPath, geoTransform, geoStream } from 'd3-geo'
+import { Map, TileLayer } from 'react-leaflet'
+import L from 'leaflet'
 
 export default class WorldMap extends Component {
   constructor(props) {
@@ -16,63 +17,92 @@ export default class WorldMap extends Component {
     this.renderMap = this.renderMap.bind(this)
   }
 
-  renderMap(geoData, tweetData) {
-    const node = this.node
-    const width = node.width.animVal.value
-    const height = node.height.animVal.value
 
-    const projection = () => {
-      return geoMercator()
-        .scale(100)
-        .translate([width / 2, height / 1.5])
+  renderMap(tweetData, geoData) {
+    console.log('stream', geoStream)
+    const node = this.node
+    const map = node.leafletElement
+
+    const svg = select(map.getPanes().overlayPane).append("svg")
+    const g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+    // if(tweetData.location.lat === "D.C.") {
+    //   tweetData.location.lat = 38.9072
+    //   tweetData.location.long = 77.0369
+    // }
+
+    let box = {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [tweetData.lat + 1, tweetData.long + 1],
+            [tweetData.lat + 1, tweetData.long - 1],
+            [tweetData.lat - 1, tweetData.long + 1],
+            [tweetData.lat - 1, tweetData.long - 1],
+          ]]
+        }
+      }
+      ]
     }
 
-    select(node)
-      .append('g')
-      .classed('countries', true)
+    tweetData.location.LatLng = new L.LatLng(tweetData.location.lat, tweetData.location.long)
 
-    const countries = select('g')
-      .selectAll('path')
-      .data(geoData)
+    function projectPoint(x, y) {
+      const point = map.latLngToLayerPoint(tweetData.location.LatLng);
+      this.stream.point(point.x, point.y);
+    }
 
-    countries.enter()
-      .append('path')
-      .classed('country', true)
-      .attr("stroke", "black")
-      .attr("strokeWidth", 0.75)
-      .attr("fill", "grey")
-      .each(function (d, i) {
-        select(this)
-          .attr("d", geoPath().projection(projection())(d))  
-      })
-      .merge(countries)
-   
-      if (tweetData.location) {
-      const location = tweetData.location
-      const cities = select('g')
-        .selectAll('circle')
-        .data([[Number(location.long), Number(location.lat)]])
+    const transform = geoTransform({ point: projectPoint })
+    const path = geoPath().projection(transform);
 
-      cities.enter()
-        .append("circle")
-        .classed('city', true)
-        .attr("cx", function (d) { 
-          return projection()(d)[0] 
+    console.log('tweetData', tweetData.location)
+    const circle = g.selectAll("circle")
+      .data([tweetData.location])
+      .enter()
+      .append("circle")
+      .classed('city', true)
+      .attr("r", "4px")
+      .attr("fill", "red")
+      .transition()
+      .delay(1000)
+      .duration(1000)
+      .remove()
+      
+  
+
+    map.on("viewreset", update);
+    update();
+
+    function update() {
+      const bounds = path.bounds(box)  //set bounds here
+      const topLeft = bounds[0];
+      const bottomRight = bounds[1];
+      console.log('bottomRight', bottomRight, "topLeft", topLeft)
+
+      svg.attr("width", "16px")
+        .attr("height", "16px")
+        .style("left", topLeft[0] + "px")
+        .style("top", topLeft[1] + "px");
+
+      g.attr("transform", "translate(" + (-topLeft[0] + 4) + "," + (-topLeft[1] + 4) + ")")
+        .attr("height", "16px")
+        .attr("width", "16px");
+
+      circle.attr("transform",
+        function (d) {
+          const point = map.latLngToLayerPoint(d.LatLng)
+          return `translate(${point.x}, ${point.y})`
         })
-        .attr("cy", function (d) { return projection()(d)[1] })
-        .attr("r", "4px")
-        .attr("fill", "red")
-        .transition()
-          .delay(500)
-          .remove()
- 
     }
   }
 
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.geoData.length) {
-      this.renderMap(nextProps.geoData, nextProps.tweetData)
+    if (nextProps.tweetData.location) {
+      this.renderMap(nextProps.tweetData, nextProps.geoData)
     }
   }
 
@@ -82,12 +112,20 @@ export default class WorldMap extends Component {
 
   render() {
     return (
-      <svg
-        width={this.props.width} height={this.props.height}
-        ref={node => this.node = node}>
-      </svg>
+      <Map ref={node => this.node = node} center={[51.505, -0.09]} zoom={1.5}>
+        <TileLayer
+          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+          attribution={`&copy;  <a href=${'http://{s}.tile.osm.org/{z}/{x}/{y}.png'}/> Contributors`}
+        />
+      </Map>
+
+
     );
   }
 }
 
 
+// <svg
+// width={this.props.width} height={this.props.height}
+// ref={node => this.node = node}>
+// </svg>

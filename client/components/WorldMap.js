@@ -6,8 +6,8 @@ import { max, min } from 'd3-array'
 import { connect } from 'react-redux'
 import countryCodes from '../../data/countryCode'
 import { transition } from 'd3-transition'
-import { geoMercator, geoPath } from 'd3-geo'
-import {Map, TileLayer} from 'react-leaflet'
+import { geoMercator, geoPath, geoTransform } from 'd3-geo'
+import { Map, TileLayer, LatLng } from 'react-leaflet'
 
 export default class WorldMap extends Component {
   constructor(props) {
@@ -15,84 +15,90 @@ export default class WorldMap extends Component {
     this.renderMap = this.renderMap.bind(this)
   }
 
-  renderMap(geoData, tweetData) {
+  renderMap(tweetData) {
     const node = this.node
-    const width = node.width.animVal.value
-    const height = node.height.animVal.value
+    const map = node.leafletElement
 
-    const projection = () => {
-      return geoMercator()
-        .scale(100)
-        .translate([width / 2, height / 1.5])
-    }
+    const svg = select(map.getPanes().overlayPane).append("svg"),
+      svgCircles = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-    select(node)
-      .append('g')
-      .classed('countries', true)
+    
 
-    const countries = select('g')
-      .selectAll('path')
-      .data(geoData)
+      var transform = geoTransform({
+        point: projectPoint
+      }),
+        path = geoPath().projection(transform);
 
-    countries.enter()
-      .append('path')
-      .classed('country', true)
-      .attr("stroke", "black")
-      .attr("strokeWidth", 0.75)
-      .attr("fill", "grey")
-      .each(function (d, i) {
-        select(this)
-          .attr("d", geoPath().projection(projection())(d))  
-      })
-      .merge(countries)
-   
-      if (tweetData.location) {
-      const location = tweetData.location
-      const cities = select('g')
-        .selectAll('circle')
-        .data([[Number(location.long), Number(location.lat)]])
+      var bounds = path.bounds(tweetData.location),
+        topLeft = bounds[0],
+        bottomRight = bounds[1];
 
-      cities.enter()
+        tweetData.location.LatLng = new LatLng(tweetData.location.lat, tweetData.location.long)
+
+
+      var circles = svgCircles.selectAll("circle")
+        .data(tweetData.location)
+        .enter()
         .append("circle")
         .classed('city', true)
-        .attr("cx", function (d) { 
-          return projection()(d)[0] 
-        })
-        .attr("cy", function (d) { return projection()(d)[1] })
-        .attr("r", "4px")
+        .attr("r", "8px")
         .attr("fill", "red")
         .transition()
-          .delay(500)
-          .remove()
- 
+        .delay(1000)
+        .remove()
+
+      // Use Leaflet to implement a D3 geometric transformation.
+      function projectPoint(x, y) {
+        const point = map.latLngToLayerPoint(new LatLng(y, x));
+        this.stream.point(point.x, point.y);
+      }
+
+      function update() {
+        circles.attr("cx", function (d) {
+          return map.latLngToLayerPoint(d.LatLng).x;
+        });
+        circles.attr("cy", function (d) {
+          return map.latLngToLayerPoint(d.LatLng).y;
+        });
+        svg.attr("width", bottomRight[0] - topLeft[0])
+          .attr("height", bottomRight[1] - topLeft[1])
+          .style("left", topLeft[0] + "px")
+          .style("top", topLeft[1] + "px");
+
+        svgCircles.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+      }
+
+      map.on("viewreset", update);
+      update();
     }
-  }
 
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.geoData.length) {
-      this.renderMap(nextProps.geoData, nextProps.tweetData)
-    }
-  }
+        if(nextProps.tweetData.location) {
+          this.renderMap(nextProps.tweetData)
+        }
+      }
 
   shouldComponentUpdate() {
-    return false;
-  }
+        return false;
+      }
 
   render() {
-    return (
-      <Map height = {this.props.height} center={[40.7128, 74.0059]} zoom={13}>
-        <TileLayer
-          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        />
-      {/*<svg
-        width={this.props.width} height={this.props.height}
-      ref={node => this.node = node}>
-      </svg>/*}
-    </Map>   
+        return(
+      <Map ref= { node=>this.node = node } center= { [51.505, -0.09]} zoom= { 1.5}>
+            <TileLayer
+              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+              attribution={`&copy;  <a href=${'http://{s}.tile.osm.org/{z}/{x}/{y}.png'}/> Contributors`}
+            />
+      </Map>
+
+      
     );
-  }
+      }
 }
 
 
+// <svg
+// width={this.props.width} height={this.props.height}
+// ref={node => this.node = node}>
+// </svg>

@@ -42,19 +42,19 @@ const twitterIds = '972651, 428333, 14293310, 14293310, 5402612, 2890961, 759251
 const stream = client.stream('statuses/filter', { follow: twitterIds });
 
 const io = io => {
-  // stream.on('data', function (event) {
+  stream.on('data', function (event) {
 
-  //   const country = countryIs(event.text)
-  //   const tweetText = event.text
-  //   const location = cityIs(tweetText) || countryIs(tweetText)
-  //   if (location) {
-  //     console.log(tweetText)
-  //     io.sockets.emit('new-tweet', { location, tweetText })
-  //   }
-  // });
-  // stream.on('error', function (error) {
-  //   console.log("error", error);
-  // });
+    const country = countryIs(event.text)
+    const tweetText = event.text
+    const location = cityIs(tweetText) || countryIs(tweetText)
+    if (location) {
+      console.log(tweetText)
+      io.sockets.emit('new-tweet', { location, tweetText })
+    }
+  });
+  stream.on('error', function (error) {
+    console.log("error", error);
+  });
 
 };
 

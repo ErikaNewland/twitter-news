@@ -17,7 +17,7 @@ export default class WorldMap extends Component {
   }
 
 
-  renderMap(tweetData) {
+  renderMap(tweetData, geoData) {
     const node = this.node
     const map = node.leafletElement
     
@@ -34,14 +34,6 @@ export default class WorldMap extends Component {
       .classed('city', true)
       .attr("r", "8px")
       .attr("fill", "red")
-      .attr("transform",
-      function (d) {
-        console.log('d', d)
-        console.log('d.LatLng', d.LatLng)
-        return "translate(" +
-          map.latLngToLayerPoint(d.LatLng).lng + "," +
-          map.latLngToLayerPoint(d.LatLng).lat + ")";
-      })
       // .transition()  //may need to move this to update
       // .delay(1000)
       // .remove()
@@ -50,20 +42,20 @@ export default class WorldMap extends Component {
     update();
 
     function update() {
+      bounds = geoPath.bounds(geoData)
+      
       circle.attr("transform",
-        function (d) {
-          console.log('d', d)
-          return "translate(" +
-            map.latLngToLayerPoint(d.LatLng).lng + "," +
-            map.latLngToLayerPoint(d.LatLng).lat + ")";
-        })
+      function (d) {
+        const point = map.latLngToLayerPoint(d.LatLng)
+        return `translate(${point.x}, ${point.y})`
+      })
       }
   }
 
 
     componentWillReceiveProps(nextProps) {
       if (nextProps.tweetData.location) {
-        this.renderMap(nextProps.tweetData)
+        this.renderMap(nextProps.tweetData, nextProps.geoData)
       }
     }
 

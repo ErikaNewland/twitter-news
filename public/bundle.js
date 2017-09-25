@@ -39264,7 +39264,7 @@ var WorldMap = function (_Component) {
 
   _createClass(WorldMap, [{
     key: 'renderMap',
-    value: function renderMap(tweetData) {
+    value: function renderMap(tweetData, geoData) {
       var node = this.node;
       var map = node.leafletElement;
 
@@ -39274,11 +39274,7 @@ var WorldMap = function (_Component) {
       tweetData.location.LatLng = new _leaflet2.default.LatLng(tweetData.location.lat, tweetData.location.long);
 
       console.log('tweetData', tweetData.location);
-      var circle = g.selectAll("circle").data([tweetData.location]).enter().append("circle").classed('city', true).attr("r", "8px").attr("fill", "red").attr("transform", function (d) {
-        console.log('d', d);
-        console.log('d.LatLng', d.LatLng);
-        return "translate(" + map.latLngToLayerPoint(d.LatLng).lng + "," + map.latLngToLayerPoint(d.LatLng).lat + ")";
-      });
+      var circle = g.selectAll("circle").data([tweetData.location]).enter().append("circle").classed('city', true).attr("r", "8px").attr("fill", "red");
       // .transition()  //may need to move this to update
       // .delay(1000)
       // .remove()
@@ -39287,9 +39283,11 @@ var WorldMap = function (_Component) {
       update();
 
       function update() {
+        bounds = _d3Geo.geoPath.bounds(geoData);
+
         circle.attr("transform", function (d) {
-          console.log('d', d);
-          return "translate(" + map.latLngToLayerPoint(d.LatLng).lng + "," + map.latLngToLayerPoint(d.LatLng).lat + ")";
+          var point = map.latLngToLayerPoint(d.LatLng);
+          return 'translate(' + point.x + ', ' + point.y + ')';
         });
       }
     }
@@ -39297,7 +39295,7 @@ var WorldMap = function (_Component) {
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(nextProps) {
       if (nextProps.tweetData.location) {
-        this.renderMap(nextProps.tweetData);
+        this.renderMap(nextProps.tweetData, nextProps.geoData);
       }
     }
   }, {

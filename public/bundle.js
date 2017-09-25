@@ -39249,6 +39249,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+// import * as d3 from 'd3'
+
 
 var WorldMap = function (_Component) {
   _inherits(WorldMap, _Component);
@@ -39273,6 +39275,14 @@ var WorldMap = function (_Component) {
 
       tweetData.location.LatLng = new _leaflet2.default.LatLng(tweetData.location.lat, tweetData.location.long);
 
+      function projectPoint(x, y) {
+        var point = map.latLngToLayerPoint(new _leaflet2.default.LatLng(y, x));
+        this.stream.point(point.x, point.y);
+      }
+
+      var transform = (0, _d3Geo.geoTransform)({ point: projectPoint });
+      var path = (0, _d3Geo.geoPath)().projection(transform);
+
       console.log('tweetData', tweetData.location);
       var circle = g.selectAll("circle").data([tweetData.location]).enter().append("circle").classed('city', true).attr("r", "8px").attr("fill", "red");
       // .transition()  //may need to move this to update
@@ -39283,7 +39293,13 @@ var WorldMap = function (_Component) {
       update();
 
       function update() {
-        bounds = _d3Geo.geoPath.bounds(geoData);
+        var bounds = path.bounds(tweetData.location.LatLng); //set bounds here
+        var topLeft = bounds[0];
+        var bottomRight = bounds[1];
+
+        svg.attr("width", bottomRight[0] - topLeft[0]).attr("height", bottomRight[1] - topLeft[1]).style("left", topLeft[0] + "px").style("top", topLeft[1] + "px");
+
+        g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 
         circle.attr("transform", function (d) {
           var point = map.latLngToLayerPoint(d.LatLng);

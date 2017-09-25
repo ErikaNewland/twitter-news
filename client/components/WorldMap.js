@@ -19,82 +19,83 @@ export default class WorldMap extends Component {
     const node = this.node
     const map = node.leafletElement
 
-    const svg = select(map.getPanes().overlayPane).append("svg"),
-      svgCircles = svg.append("g").attr("class", "leaflet-zoom-hide");
+    //add svg element to leaflet
+    const svg = select(map.getPanes().overlayPane).append("svg")
+    const svgCircles = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-    
 
-      var transform = geoTransform({
-        point: projectPoint
-      }),
-        path = geoPath().projection(transform);
+    //transofrm points from lat long to x/y
+    const transform = geoTransform({
+      point: projectPoint
+    }),
+      path = geoPath().projection(transform);  
 
-      var bounds = path.bounds(tweetData.location),
+
+    tweetData.location.LatLng = new LatLng(tweetData.location.lat, tweetData.location.long)
+
+    const circles = svgCircles.selectAll("circle")
+      .data(tweetData.location)
+      .enter()
+      .append("circle")
+      .classed('city', true)
+      .attr("r", "8px")
+      .attr("fill", "red")
+      .transition()  //may need to move this to update
+      .delay(1000)
+      .remove()
+
+    function update() {
+      const bounds = path.bounds(tweetData.location),  //do we want to change this so the bounds of the svg is the entire container?- set it with the geo data?
         topLeft = bounds[0],
         bottomRight = bounds[1];
 
-        tweetData.location.LatLng = new LatLng(tweetData.location.lat, tweetData.location.long)
+      circles.attr("cx", function (d) {
+        return map.latLngToLayerPoint(d.LatLng).x;
+      });
+      circles.attr("cy", function (d) {
+        return map.latLngToLayerPoint(d.LatLng).y;
+      });
+      svg.attr("width", bottomRight[0] - topLeft[0])
+        .attr("height", bottomRight[1] - topLeft[1])
+        .style("left", topLeft[0] + "px")
+        .style("top", topLeft[1] + "px");
 
-
-      var circles = svgCircles.selectAll("circle")
-        .data(tweetData.location)
-        .enter()
-        .append("circle")
-        .classed('city', true)
-        .attr("r", "8px")
-        .attr("fill", "red")
-        .transition()
-        .delay(1000)
-        .remove()
-
-      // Use Leaflet to implement a D3 geometric transformation.
-      function projectPoint(x, y) {
-        const point = map.latLngToLayerPoint(new LatLng(y, x));
-        this.stream.point(point.x, point.y);
-      }
-
-      function update() {
-        circles.attr("cx", function (d) {
-          return map.latLngToLayerPoint(d.LatLng).x;
-        });
-        circles.attr("cy", function (d) {
-          return map.latLngToLayerPoint(d.LatLng).y;
-        });
-        svg.attr("width", bottomRight[0] - topLeft[0])
-          .attr("height", bottomRight[1] - topLeft[1])
-          .style("left", topLeft[0] + "px")
-          .style("top", topLeft[1] + "px");
-
-        svgCircles.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-      }
-
-      map.on("viewreset", update);
-      update();
+      svgCircles.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
     }
+
+    map.on("viewreset", update);
+    update();
+
+    // Use Leaflet to implement a D3 geometric transformation.
+    function projectPoint(x, y) {
+      const point = map.latLngToLayerPoint(new LatLng(y, x));
+      this.stream.point(point.x, point.y);
+    }
+  }
 
 
   componentWillReceiveProps(nextProps) {
-        if(nextProps.tweetData.location) {
-          this.renderMap(nextProps.tweetData)
-        }
-      }
+    if (nextProps.tweetData.location) {
+      this.renderMap(nextProps.tweetData)
+    }
+  }
 
   shouldComponentUpdate() {
-        return false;
-      }
+    return false;
+  }
 
   render() {
-        return(
-      <Map ref= { node=>this.node = node } center= { [51.505, -0.09]} zoom= { 1.5}>
-            <TileLayer
-              url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-              attribution={`&copy;  <a href=${'http://{s}.tile.osm.org/{z}/{x}/{y}.png'}/> Contributors`}
-            />
+    return (
+      <Map ref={node => this.node = node} center={[51.505, -0.09]} zoom={1.5}>
+        <TileLayer
+          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+          attribution={`&copy;  <a href=${'http://{s}.tile.osm.org/{z}/{x}/{y}.png'}/> Contributors`}
+        />
       </Map>
 
-      
+
     );
-      }
+  }
 }
 
 

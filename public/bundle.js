@@ -39238,6 +39238,10 @@ var _d3Geo = __webpack_require__(404);
 
 var _reactLeaflet = __webpack_require__(765);
 
+var _leaflet = __webpack_require__(6);
+
+var _leaflet2 = _interopRequireDefault(_leaflet);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -39264,42 +39268,30 @@ var WorldMap = function (_Component) {
       var node = this.node;
       var map = node.leafletElement;
 
-      var svg = (0, _d3Selection.select)(map.getPanes().overlayPane).append("svg"),
-          svgCircles = svg.append("g").attr("class", "leaflet-zoom-hide");
+      var svg = (0, _d3Selection.select)(map.getPanes().overlayPane).append("svg");
+      var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-      var transform = (0, _d3Geo.geoTransform)({
-        point: projectPoint
-      }),
-          path = (0, _d3Geo.geoPath)().projection(transform);
+      tweetData.location.LatLng = new _leaflet2.default.LatLng(tweetData.location.lat, tweetData.location.long);
 
-      var bounds = path.bounds(tweetData.location),
-          topLeft = bounds[0],
-          bottomRight = bounds[1];
-
-      tweetData.location.LatLng = new _reactLeaflet.LatLng(tweetData.location.lat, tweetData.location.long);
-
-      var circles = svgCircles.selectAll("circle").data(tweetData.location).enter().append("circle").classed('city', true).attr("r", "8px").attr("fill", "red").transition().delay(1000).remove();
-
-      // Use Leaflet to implement a D3 geometric transformation.
-      function projectPoint(x, y) {
-        var point = map.latLngToLayerPoint(new _reactLeaflet.LatLng(y, x));
-        this.stream.point(point.x, point.y);
-      }
-
-      function update() {
-        circles.attr("cx", function (d) {
-          return map.latLngToLayerPoint(d.LatLng).x;
-        });
-        circles.attr("cy", function (d) {
-          return map.latLngToLayerPoint(d.LatLng).y;
-        });
-        svg.attr("width", bottomRight[0] - topLeft[0]).attr("height", bottomRight[1] - topLeft[1]).style("left", topLeft[0] + "px").style("top", topLeft[1] + "px");
-
-        svgCircles.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-      }
+      console.log('tweetData', tweetData.location);
+      var circle = g.selectAll("circle").data([tweetData.location]).enter().append("circle").classed('city', true).attr("r", "8px").attr("fill", "red").attr("transform", function (d) {
+        console.log('d', d);
+        console.log('d.LatLng', d.LatLng);
+        return "translate(" + map.latLngToLayerPoint(d.LatLng).lng + "," + map.latLngToLayerPoint(d.LatLng).lat + ")";
+      });
+      // .transition()  //may need to move this to update
+      // .delay(1000)
+      // .remove()
 
       map.on("viewreset", update);
       update();
+
+      function update() {
+        circle.attr("transform", function (d) {
+          console.log('d', d);
+          return "translate(" + map.latLngToLayerPoint(d.LatLng).lng + "," + map.latLngToLayerPoint(d.LatLng).lat + ")";
+        });
+      }
     }
   }, {
     key: 'componentWillReceiveProps',

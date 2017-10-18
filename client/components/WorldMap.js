@@ -57,40 +57,35 @@ export default class WorldMap extends Component {
 
     const transform = geoTransform({ point: projectPoint })
     const path = geoPath().projection(transform);
-
-    console.log('tweetData', tweetData.location)
-    const circle = g.selectAll("circle")
-      .data([tweetData.location])
-      .enter()
-      .append("circle")
-      .classed('city', true)
-      .attr("r", "4px")
-      .attr("fill", "red")
-      .transition()
-      .delay(1000)
-      .duration(1000)
-      .remove()
-      
-  
-
-    map.on("viewreset", update);
+    
     update();
-
+    
     function update() {
       const bounds = path.bounds(box)  //set bounds here
       const topLeft = bounds[0];
       const bottomRight = bounds[1];
-      console.log('bottomRight', bottomRight, "topLeft", topLeft)
-
+      
       svg.attr("width", "16px")
-        .attr("height", "16px")
-        .style("left", topLeft[0] + "px")
-        .style("top", topLeft[1] + "px");
-
+      .attr("height", "16px")
+      .style("left", topLeft[0] + "px")
+      .style("top", topLeft[1] + "px");
+      
       g.attr("transform", "translate(" + (-topLeft[0] + 4) + "," + (-topLeft[1] + 4) + ")")
-        .attr("height", "16px")
-        .attr("width", "16px");
-
+      .attr("height", "16px")
+      .attr("width", "16px");
+      
+      const circle = g.selectAll("circle")
+        .data([tweetData.location])
+        .enter()
+        .append("circle")
+        .classed('city', true)
+        .attr("r", "4px")
+        .attr("fill", "red")
+        .transition()
+        .delay(1000)
+        .duration(1000)
+        .remove()
+  
       circle.attr("transform",
         function (d) {
           const point = map.latLngToLayerPoint(d.LatLng)
@@ -98,7 +93,7 @@ export default class WorldMap extends Component {
         })
     }
   }
-
+  
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.tweetData.location) {
@@ -110,9 +105,9 @@ export default class WorldMap extends Component {
     return false;
   }
 
-  render() {
-    return (
-      <Map ref={node => this.node = node} center={[51.505, -0.09]} zoom={1.5}>
+  render() { 
+    return (  //need onZoom functionality 
+      <Map onZoomed = {this.renderMap} ref={node => this.node = node} center={[51.505, -0.09]} zoom={1.5} onZoomend={this.update}>
         <TileLayer
           url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
           attribution={`&copy;  <a href=${'http://{s}.tile.osm.org/{z}/{x}/{y}.png'}/> Contributors`}
@@ -125,7 +120,3 @@ export default class WorldMap extends Component {
 }
 
 
-// <svg
-// width={this.props.width} height={this.props.height}
-// ref={node => this.node = node}>
-// </svg>

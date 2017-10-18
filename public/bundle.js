@@ -44213,27 +44213,18 @@ var WorldMap = function (_Component) {
       var transform = (0, _d3Geo.geoTransform)({ point: projectPoint });
       var path = (0, _d3Geo.geoPath)().projection(transform);
 
-      map.on("viewreset", update);
-      map.on("zoom", update);
       update();
 
       function update() {
-        console.log('update');
         var bounds = path.bounds(box); //set bounds here
         var topLeft = bounds[0];
         var bottomRight = bounds[1];
-        console.log('bottomRight', bottomRight, "topLeft", topLeft);
 
         svg.attr("width", "16px").attr("height", "16px").style("left", topLeft[0] + "px").style("top", topLeft[1] + "px");
 
         g.attr("transform", "translate(" + (-topLeft[0] + 4) + "," + (-topLeft[1] + 4) + ")").attr("height", "16px").attr("width", "16px");
 
-        console.log('tweetData', tweetData.location);
-        var circle = g.selectAll("circle").data([tweetData.location]).enter().append("circle").classed('city', true).attr("r", "4px").attr("fill", "red");
-        // .transition()
-        // .delay(1000)
-        // .duration(1000)
-        // .remove()
+        var circle = g.selectAll("circle").data([tweetData.location]).enter().append("circle").classed('city', true).attr("r", "4px").attr("fill", "red").transition().delay(1000).duration(1000).remove();
 
         circle.attr("transform", function (d) {
           var point = map.latLngToLayerPoint(d.LatLng);
@@ -44258,27 +44249,23 @@ var WorldMap = function (_Component) {
     value: function render() {
       var _this2 = this;
 
-      return _react2.default.createElement(
-        _reactLeaflet.Map,
-        { ref: function ref(node) {
-            return _this2.node = node;
-          }, center: [51.505, -0.09], zoom: 1.5 },
-        _react2.default.createElement(_reactLeaflet.TileLayer, {
-          url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-          attribution: '&copy;  <a href=' + 'http://{s}.tile.osm.org/{z}/{x}/{y}.png' + '/> Contributors'
-        })
+      return (//need onZoom functionality 
+        _react2.default.createElement(
+          _reactLeaflet.Map,
+          { onZoomed: this.renderMap, ref: function ref(node) {
+              return _this2.node = node;
+            }, center: [51.505, -0.09], zoom: 1.5, onZoomend: this.update },
+          _react2.default.createElement(_reactLeaflet.TileLayer, {
+            url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+            attribution: '&copy;  <a href=' + 'http://{s}.tile.osm.org/{z}/{x}/{y}.png' + '/> Contributors'
+          })
+        )
       );
     }
   }]);
 
   return WorldMap;
 }(_react.Component);
-
-// <svg
-// width={this.props.width} height={this.props.height}
-// ref={node => this.node = node}>
-// </svg>
-
 
 exports.default = WorldMap;
 

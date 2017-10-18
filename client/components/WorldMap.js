@@ -81,10 +81,10 @@ export default class WorldMap extends Component {
         .classed('city', true)
         .attr("r", "4px")
         .attr("fill", "red")
-        // .transition()
-        // .delay(1000)
-        // .duration(1000)
-        // .remove()
+        .transition()
+        .delay(1000)
+        .duration(1000)
+        .remove()
   
       circle.attr("transform",
         function (d) {
@@ -120,7 +120,3 @@ export default class WorldMap extends Component {
 }
 
 
-// <svg
-// width={this.props.width} height={this.props.height}
-// ref={node => this.node = node}>
-// </svg>

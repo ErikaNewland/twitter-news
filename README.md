@@ -5,7 +5,7 @@ this.incoming tracks the location of news stories as they unfold around the worl
 
 ##Technologies and Libraries
 ##Front-End
-React, Redux, React-Redux
+React, Redux, React-Redux, D3
 ##Back-End
 Express, Sequelize, Node, Postgres, pg
 ##APIs and Libraries
